@@ -1,69 +1,1409 @@
-
 <!-- 
   Project: languagenut Homework Hack
   Author: z3phy.dev
-  License: Free to use, modify, and share for personal or educational purposes.
+  License: GNU General Public License v3.0 - Free to use, modify, and share for personal or educational purposes.
   Disclaimer: This code is provided as-is without any warranty. 
               Use responsibly and only in safe, legal contexts.
 -->
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LNH</title>
-    <link rel="stylesheet" href="style.css">
+    <title>LNH — Languagenut Homework Automation Suite</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', '"Space Mono"', 'monospace'],
+                    },
+                    colors: {
+                        obsidian: '#07090e',
+                        panel: 'rgba(15, 20, 32, 0.78)',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* ==========================================================================
+           CORE GLASSMORPHIC & DYNAMIC ELEMENT STYLING
+           Preserves 100% of script.js DOM structure, classes, and inline styles
+           ========================================================================== */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #07090e;
+            color: #f1f5f9;
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Background Radial Glows */
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .glow-orb-1 {
+            position: absolute;
+            top: -12%;
+            left: 15%;
+            width: 520px;
+            height: 520px;
+            border-radius: 9999px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.16) 0%, rgba(99, 102, 241, 0) 70%);
+            filter: blur(50px);
+        }
+        .glow-orb-2 {
+            position: absolute;
+            bottom: -15%;
+            right: 10%;
+            width: 580px;
+            height: 580px;
+            border-radius: 9999px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0) 70%);
+            filter: blur(60px);
+        }
+        .glow-orb-3 {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 700px;
+            height: 400px;
+            border-radius: 9999px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0) 70%);
+            filter: blur(70px);
+        }
+
+        /* Overlay Visibility & Responsive Positioning System */
+        .overlay {
+            display: none;
+            opacity: 0;
+            transform: translateY(12px) scale(0.985);
+            transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .overlay.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Login Centered Card Layout */
+        #login.overlay.active {
+            width: 100%;
+            max-width: 440px;
+            margin: 3.5rem auto;
+            grid-column: 1 / -1;
+        }
+
+        /* Dashboard Side-by-Side Layout when HW and Logs are active */
+        #hw_panel.overlay.active,
+        #log_panel.overlay.active {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Glassmorphic Panel Card */
+        .panel {
+            width: 100%;
+            background: rgba(15, 21, 35, 0.78);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.085);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65),
+                        0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle top-edge highlight on panels */
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10%;
+            right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+            pointer-events: none;
+        }
+
+        /* Custom Input Fields */
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.65rem;
+            background: rgba(9, 13, 22, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            color: #f8fafc;
+            font-size: 0.925rem;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+        .input-field::placeholder {
+            color: #64748b;
+        }
+        .input-field:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            background: rgba(12, 17, 29, 0.95);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.925rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid transparent;
+            user-select: none;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: #ffffff;
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.45),
+                        0 1px 0 0 rgba(255, 255, 255, 0.2) inset;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+            box-shadow: 0 14px 30px -5px rgba(99, 102, 241, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            width: 100%;
+            margin-top: 1.25rem;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            letter-spacing: 0.025em;
+            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4),
+                        0 1px 0 0 rgba(255, 255, 255, 0.22) inset;
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            box-shadow: 0 14px 30px -5px rgba(16, 185, 129, 0.55);
+            transform: translateY(-1px);
+        }
+
+        /* Scrollable Content Containers (#hw_container & #log_container) */
+        .content-container {
+            flex: 1;
+            min-height: 330px;
+            max-height: 440px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: rgba(7, 10, 18, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 0.875rem;
+            font-size: 0.875rem;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        .content-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .content-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 6px;
+        }
+        .content-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.14);
+            border-radius: 6px;
+        }
+        .content-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.28);
+        }
+
+        /* Custom Checkboxes for Select All, Homework Headers, and Tasks */
+        input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 1.1rem;
+            height: 1.1rem;
+            border: 1.5px solid rgba(148, 163, 184, 0.45);
+            border-radius: 0.35rem;
+            background-color: rgba(15, 23, 42, 0.8);
+            cursor: pointer;
+            position: relative;
+            vertical-align: middle;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+        }
+        input[type="checkbox"]:hover {
+            border-color: #818cf8;
+        }
+        input[type="checkbox"]:checked {
+            background-color: #6366f1;
+            border-color: #6366f1;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.45);
+        }
+        input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 2px;
+            width: 4.5px;
+            height: 9px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        /* Styling for Dynamically Generated Homework Nodes in #hw_container */
+        #hw_container > div:not([id^="hw"]) {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.65rem 0.85rem;
+            background: rgba(30, 41, 59, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 0.65rem;
+            color: #f8fafc;
+            font-size: 0.9rem;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        #hw_container > div:not([id^="hw"]):hover {
+            background: rgba(30, 41, 59, 0.85);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        #hw_container > div[id^="hw"] {
+            padding-left: 0.85rem;
+            border-left: 2px solid rgba(99, 102, 241, 0.25);
+        }
+
+        /* Task Rows created by createTaskElements() */
+        .task {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.45rem 0.65rem;
+            margin-bottom: 0.35rem;
+            border-radius: 0.5rem;
+            transition: background 0.15s ease;
+        }
+        .task:hover {
+            background: rgba(255, 255, 255, 0.045);
+        }
+        .task label {
+            cursor: pointer;
+            font-size: 0.825rem;
+            color: #cbd5e1;
+            line-height: 1.4;
+            user-select: none;
+            flex: 1;
+        }
+        .task input[type="checkbox"]:checked + label {
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        /* Progress Bar Track & Animated Fill */
+        .progress-track-wrapper {
+            width: 100%;
+            height: 0.75rem;
+            background: rgba(9, 13, 22, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            padding: 2px;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1 0%, #10b981 100%);
+            border-radius: 9999px;
+            transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 14px rgba(16, 185, 129, 0.55);
+        }
+
+        /* Monospace Terminal Logs & .json-small */
+        #log_container {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+        #log_container > div {
+            padding: 0.25rem 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+        }
+        #log_container strong {
+            color: #818cf8;
+            font-weight: 600;
+        }
+        .json-small {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.72rem;
+            color: #94a3b8;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-left: 2px solid #6366f1;
+            padding: 0.35rem 0.6rem;
+            border-radius: 0.375rem;
+            margin: 0.25rem 0 0.5rem 0;
+            word-break: break-all;
+        }
+
+        /* Settings Modal Dialog */
+        dialog#settings {
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 1.25rem;
+            padding: 0;
+            background: rgba(15, 21, 35, 0.95);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            color: #f8fafc;
+            width: 420px;
+            max-width: 92vw;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85),
+                        0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+            overflow: hidden;
+        }
+        dialog#settings::backdrop {
+            background: rgba(3, 6, 12, 0.75);
+            backdrop-filter: blur(6px);
+        }
+
+        /* Custom Range Slider */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            outline: none;
+            margin: 0.75rem 0;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #818cf8 0%, #4f46e5 100%);
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.7);
+            cursor: pointer;
+            transition: transform 0.15s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.12);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #818cf8 0%, #4f46e5 100%);
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.7);
+            cursor: pointer;
+        }
+    </style>
 </head>
-<body>
-    <div id="login" class="overlay">
-        <div class="panel">
-            <h2>Login</h2>
-            <input class="input-field" id="username_input" type="text" placeholder="Username" autocomplete="username">
-            <input class="input-field" id="password_input" type="text" placeholder="Password" autocomplete="current-password">
-            <button class="btn btn-primary" id="login_btn">Log In</button>
-        </div>
+<body class="selection:bg-indigo-500 selection:text-white flex flex-col min-h-screen">
+
+    <!-- Ambient Background Glow Orbs -->
+    <div class="ambient-bg">
+        <div class="glow-orb-1"></div>
+        <div class="glow-orb-2"></div>
+        <div class="glow-orb-3"></div>
     </div>
 
-    <div id="hw_panel" class="overlay">
-        <div class="panel">
-            <h2>Homeworks</h2>
-            <div class="checkbox-row">
-                <input type="checkbox" id="selectall">
-                <label for="selectall">Select all</label>
-            </div>
-            <div id="hw_container" class="content-container"></div>
-            <button id="do_hw" class="btn btn-success">DO THE HOMEWORK</button>
-        </div>
-    </div>
-
-    <div id="log_panel" class="overlay overlay-right">
-        <div class="panel">
-            <h2>Logs</h2>
-            <div id="hw_bar" class="progress-bar"></div>
-            <div id="log_container" class="content-container"></div>
-        </div>
-    </div>
-
-    <dialog id="settings">
-        <div class="settings-content">
-            <h3>Settings</h3>
-            <p class="settings-note">[Esc] to exit</p>
-
-            <div class="setting-group">
-                <label for="speed_slider">Completion time:</label>
-                <input type="range" min="0" max="24" value="0" id="speed_slider" step="0.1">
-                <div class="speed-display">
-                    Current: <span id="speed_display">5 seconds</span>
+    <!-- Top Navigation Bar -->
+    <header class="relative z-30 w-full border-b border-white/10 bg-slate-950/60 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand Identity -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 border border-white/20">
+                    <i class="fa-solid fa-bolt text-white text-base"></i>
                 </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-base tracking-tight text-white">LNH</span>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">v2.4 Pro</span>
+                    </div>
+                    <p class="text-xs text-slate-400 hidden sm:block">Languagenut Homework Automation Suite</p>
+                </div>
+            </div>
+
+            <!-- Right Controls: Demo Mode Toggle & Settings Button -->
+            <div class="flex items-center gap-2.5 sm:gap-3">
+                <!-- Interactive Demo / Preview Mode Toggle -->
+                <button id="demo_mode_btn" type="button" class="px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 transition-all flex items-center gap-2 cursor-pointer shadow-sm" title="Preview the Homework & Logs dashboard with sample data">
+                    <span id="demo_status_dot" class="w-2 h-2 rounded-full bg-slate-500 transition-colors"></span>
+                    <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i>
+                    <span id="demo_mode_label">Preview Dashboard</span>
+                </button>
+
+                <!-- Required #settings_button -->
+                <button id="settings_button" class="settings-btn px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-200 hover:text-white border border-indigo-500/30 transition-all flex items-center gap-2 cursor-pointer shadow-sm">
+                    <i class="fa-solid fa-sliders text-indigo-400"></i>
+                    <span>Settings</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Non-intrusive Toast Notification Container (replaces native blocking alerts when needed) -->
+    <div id="toast_banner" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 -translate-y-2 transition-all duration-300">
+        <div id="toast_inner" class="px-4 py-2.5 rounded-xl bg-rose-950/90 border border-rose-500/40 text-rose-200 text-xs sm:text-sm font-medium shadow-2xl backdrop-blur-lg flex items-center gap-2.5">
+            <i id="toast_icon" class="fa-solid fa-circle-exclamation text-rose-400"></i>
+            <span id="toast_text">Notification</span>
+        </div>
+    </div>
+
+    <!-- Main Content Workspace -->
+    <main class="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- =================================================================
+             1. LOGIN OVERLAY (#login)
+             ================================================================= -->
+        <div id="login" class="overlay">
+            <div class="panel">
+                <!-- Card Header -->
+                <div class="flex items-center gap-3.5 mb-6">
+                    <div class="w-11 h-11 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shadow-inner">
+                        <i class="fa-solid fa-user-shield text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold text-white tracking-tight m-0">Account Login</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Authenticate directly with Languagenut API</p>
+                    </div>
+                </div>
+
+                <!-- Credentials Form -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="username_input" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">Username</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                                <i class="fa-regular fa-user text-sm"></i>
+                            </span>
+                            <input class="input-field" id="username_input" type="text" placeholder="Enter your Languagenut username" autocomplete="username">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="password_input" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">Password</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                                <i class="fa-solid fa-lock text-sm"></i>
+                            </span>
+                            <input class="input-field" id="password_input" type="password" placeholder="Enter your password" autocomplete="current-password">
+                        </div>
+                    </div>
+
+                    <div class="pt-2">
+                        <button class="btn btn-primary" id="login_btn">
+                            <span>Log In</span>
+                            <i class="fa-solid fa-arrow-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Helpful Footer Hint -->
+                <div class="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs text-slate-400">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                        Direct API session token
+                    </span>
+                    <button type="button" id="quick_demo_link" class="text-indigo-400 hover:text-indigo-300 font-medium underline underline-offset-4 cursor-pointer">
+                        Try Preview Mode &rarr;
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- =================================================================
+             2. HOMEWORKS PANEL (#hw_panel)
+             ================================================================= -->
+        <div id="hw_panel" class="overlay lg:col-span-7">
+            <div class="panel">
+                <!-- Panel Header -->
+                <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-4 border-b border-white/10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                            <i class="fa-solid fa-layer-group text-base"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-white tracking-tight m-0">Homeworks</h2>
+                            <p class="text-xs text-slate-400">Select assignments or individual modules to complete</p>
+                        </div>
+                    </div>
+
+                    <!-- Select All Checkbox Pill -->
+                    <div class="checkbox-row flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-slate-900/90 border border-white/10 hover:border-indigo-500/40 transition-colors">
+                        <input type="checkbox" id="selectall">
+                        <label for="selectall" class="text-xs font-semibold text-slate-200 cursor-pointer select-none">Select all</label>
+                    </div>
+                </div>
+
+                <!-- Homework List Container (Populated by script.js) -->
+                <div id="hw_container" class="content-container"></div>
+
+                <!-- Primary Action Button -->
+                <button id="do_hw" class="btn btn-success">
+                    <i class="fa-solid fa-bolt"></i>
+                    <span>DO THE HOMEWORK</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- =================================================================
+             3. LOGS & PROGRESS PANEL (#log_panel)
+             ================================================================= -->
+        <div id="log_panel" class="overlay overlay-right lg:col-span-5">
+            <div class="panel">
+                <!-- Panel Header -->
+                <div class="flex items-center justify-between gap-3 mb-4 pb-4 border-b border-white/10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                            <i class="fa-solid fa-terminal text-base"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-white tracking-tight m-0">Logs</h2>
+                            <p class="text-xs text-slate-400">Live task execution & score telemetry</p>
+                        </div>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-[11px] font-mono bg-slate-900 text-slate-300 border border-white/10">
+                        Pool: 5x Async
+                    </span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="mb-2">
+                    <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+                        <span class="font-medium uppercase tracking-wider text-[11px]">Completion Progress</span>
+                        <span class="font-mono text-indigo-300 text-[11px]">Auto-Sync</span>
+                    </div>
+                    <div class="progress-track-wrapper">
+                        <div id="hw_bar" class="progress-bar"></div>
+                    </div>
+                </div>
+
+                <!-- Log Stream Container (Populated by script.js) -->
+                <div id="log_container" class="content-container">
+                    <div class="text-slate-500 italic">Ready. Select homework tasks and click "DO THE HOMEWORK" to begin...</div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- =================================================================
+         4. SETTINGS MODAL DIALOG (dialog#settings)
+         ================================================================= -->
+    <dialog id="settings">
+        <div class="settings-content p-6">
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                        <i class="fa-solid fa-gauge-high text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white m-0">Settings</h3>
+                        <p class="settings-note text-xs text-slate-400 m-0">[Esc] to exit</p>
+                    </div>
+                </div>
+                <button type="button" id="close_settings_btn" class="w-8 h-8 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer" title="Close">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <div class="setting-group space-y-3">
+                <div class="flex items-center justify-between">
+                    <label for="speed_slider" class="text-xs font-semibold uppercase tracking-wider text-slate-300">Completion time:</label>
+                    <div class="speed-display text-xs text-slate-300 bg-slate-900/90 px-2.5 py-1 rounded-md border border-white/10">
+                        Current: <span id="speed_display" class="font-mono font-semibold text-indigo-400">5 seconds</span>
+                    </div>
+                </div>
+
+                <input type="range" min="0" max="24" value="0" id="speed_slider" step="0.1">
+
+                <div class="flex justify-between text-[11px] text-slate-500 font-mono pt-0.5">
+                    <span>5s (Instant)</span>
+                    <span>6h</span>
+                    <span>12h</span>
+                    <span>18h</span>
+                    <span>24h</span>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-white/10 text-[11px] text-slate-400 leading-relaxed">
+                <i class="fa-solid fa-circle-info text-indigo-400 mr-1"></i>
+                Adds randomized human-like jitter (<span class="font-mono text-slate-300">&plusmn;5%</span>) to the reported completion timestamp sent to Languagenut.
             </div>
         </div>
     </dialog>
 
-    <button id="settings_button" class="settings-btn">Settings</button>
+    <!-- Footer -->
+    <footer class="relative z-10 w-full py-4 border-t border-white/5 text-center text-xs text-slate-500">
+        <span>Languagenut Homework Hack &bull; Educational &amp; Personal Use Only &bull; GPL-3.0 License</span>
+    </footer>
 
-    <script src="script.js"></script>
+    <!-- =================================================================
+         5. APPLICATION JAVASCRIPT (Full Original script.js + Demo Preview Support)
+         ================================================================= -->
+    <script>
+        // Non-blocking toast helper (replaces blocking alert() while keeping clear feedback)
+        function showToast(message, isError = true) {
+            const banner = document.getElementById("toast_banner");
+            const inner = document.getElementById("toast_inner");
+            const text = document.getElementById("toast_text");
+            const icon = document.getElementById("toast_icon");
+
+            text.textContent = message;
+            if (isError) {
+                inner.className = "px-4 py-2.5 rounded-xl bg-rose-950/95 border border-rose-500/40 text-rose-200 text-xs sm:text-sm font-medium shadow-2xl backdrop-blur-lg flex items-center gap-2.5";
+                icon.className = "fa-solid fa-circle-exclamation text-rose-400";
+            } else {
+                inner.className = "px-4 py-2.5 rounded-xl bg-emerald-950/95 border border-emerald-500/40 text-emerald-200 text-xs sm:text-sm font-medium shadow-2xl backdrop-blur-lg flex items-center gap-2.5";
+                icon.className = "fa-solid fa-circle-check text-emerald-400";
+            }
+
+            banner.classList.remove("opacity-0", "-translate-y-2");
+            banner.classList.add("opacity-100", "translate-y-0");
+
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => {
+                banner.classList.remove("opacity-100", "translate-y-0");
+                banner.classList.add("opacity-0", "-translate-y-2");
+            }, 3600);
+        }
+
+        // Global variables
+        let speed = 5; // Default 5 seconds
+        let app;
+        let isDemoMode = false;
+
+        // Initialize speed slider
+        document.addEventListener('DOMContentLoaded', function() {
+            const speedSlider = document.getElementById("speed_slider");
+            const speedDisplay = document.getElementById("speed_display");
+
+            // Set initial values - slider at 0 represents 5 seconds
+            speedSlider.value = 0;
+            updateSpeedDisplay(0);
+
+            speedSlider.oninput = function() {
+                const value = parseFloat(this.value);
+                updateSpeedDisplay(value);
+            };
+
+            function updateSpeedDisplay(value) {
+                if (value === 0) {
+                    speed = 5; // 5 seconds
+                    speedDisplay.textContent = "5 seconds";
+                } else {
+                    // Convert hours to seconds: hours * 3600
+                    speed = value * 3600;
+                    if (value < 1) {
+                        const minutes = Math.round(value * 60);
+                        speedDisplay.textContent = `${minutes} minutes`;
+                    } else {
+                        speedDisplay.textContent = `${value} hours`;
+                    }
+                }
+            }
+        });
+
+        // Settings button functionality
+        document.getElementById("settings_button").addEventListener("click", () => {
+            document.getElementById("settings").showModal();
+        });
+
+        // Close button inside settings dialog
+        document.getElementById("close_settings_btn").addEventListener("click", () => {
+            document.getElementById("settings").close();
+        });
+
+        // Close settings on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const dlg = document.getElementById("settings");
+                if (dlg.open) dlg.close();
+            }
+        });
+
+        // Utility functions
+        function secondsToString(seconds) {
+            if (seconds < 60) {
+                return `${Math.round(seconds)} seconds`;
+            } else if (seconds < 3600) {
+                const minutes = Math.round(seconds / 60);
+                return `${minutes} minutes`;
+            } else if (seconds < 86400) {
+                const hours = Math.round(seconds / 3600);
+                return `${hours} hours`;
+            } else {
+                const days = Math.round(seconds / 86400);
+                return `${days} days`;
+            }
+        }
+
+        function setCheckboxes(node, state) {
+            const container = document.getElementById(node);
+            if (container) {
+                for (const checkbox of container.querySelectorAll("input[type=checkbox]")) {
+                    checkbox.checked = state;
+                }
+            }
+        }
+
+        // Async pool utility for managing concurrent requests
+        async function asyncPool(array, poolSize) {
+            const result = [];
+            const pool = [];
+
+            function leavePool(e) {
+                pool.splice(pool.indexOf(e), 1);
+            }
+
+            for (const item of array) {
+                const p = Promise.resolve(item());
+                result.push(p);
+                const e = p.then(() => leavePool(e));
+                pool.push(e);
+                if (pool.length >= poolSize) await Promise.race(pool);
+            }
+            return Promise.all(result);
+        }
+
+        // Task completer class
+        class TaskCompleter {
+            constructor(token, task, ietf) {
+                this.token = token;
+                this.task = task;
+                this.mode = this.getTaskType();
+                this.toLanguage = ietf;
+                this.homeworkId = task.base[0];
+                this.catalogUid = task.catalog_uid || task.base[task.base.length - 1];
+                this.relModuleUid = task.rel_module_uid;
+                this.gameUid = task.game_uid;
+                this.gameType = task.type;
+            }
+
+            async complete() {
+                const answers = await this.getData();
+                if (answers && answers.length > 0) {
+                    await this.sendAnswers(answers);
+                }
+            }
+
+            async getData() {
+                let vocabs;
+                switch (this.mode) {
+                    case "sentence":
+                        vocabs = await this.getSentences();
+                        break;
+                    case "verbs":
+                        vocabs = await this.getVerbs();
+                        break;
+                    case "phonics":
+                        vocabs = await this.getPhonics();
+                        break;
+                    case "exam":
+                        vocabs = await this.getExam();
+                        break;
+                    default:
+                        vocabs = await this.getVocabs();
+                }
+                return vocabs;
+            }
+
+            async sendAnswers(vocabs) {
+                if (!vocabs || vocabs.length === 0) {
+                    console.log("No vocabs found, skipping sending answers.");
+                    return;
+                }
+
+                const data = {
+                    moduleUid: this.catalogUid,
+                    gameUid: this.gameUid,
+                    gameType: this.gameType,
+                    isTest: true,
+                    toietf: this.toLanguage,
+                    fromietf: "en-US",
+                    score: vocabs.length * 200,
+                    correctVocabs: vocabs.map((x) => x.uid).join(","),
+                    incorrectVocabs: [],
+                    homeworkUid: this.homeworkId,
+                    isSentence: this.mode === "sentence",
+                    isALevel: false,
+                    isVerb: this.mode === "verbs",
+                    verbUid: this.mode === "verbs" ? this.catalogUid : "",
+                    phonicUid: this.mode === "phonics" ? this.catalogUid : "",
+                    sentenceScreenUid: this.mode === "sentence" ? 100 : "",
+                    sentenceCatalogUid: this.mode === "sentence" ? this.catalogUid : "",
+                    grammarCatalogUid: this.catalogUid,
+                    isGrammar: false,
+                    isExam: this.mode === "exam",
+                    correctStudentAns: "",
+                    incorrectStudentAns: "",
+                    timeStamp: Math.floor(speed + ((Math.random() - 0.5) / 10) * speed) * 1000,
+                    vocabNumber: vocabs.length,
+                    rel_module_uid: this.task.rel_module_uid,
+                    dontStoreStats: true,
+                    product: "secondary",
+                    token: this.token,
+                };
+
+                const response = await this.callLnut("gameDataController/addGameScore", data);
+                return response;
+            }
+
+            async getVerbs() {
+                const vocabs = await this.callLnut("verbTranslationController/getVerbTranslations", {
+                    verbUid: this.catalogUid,
+                    toLanguage: this.toLanguage,
+                    fromLanguage: "en-US",
+                    token: this.token,
+                });
+                return vocabs.verbTranslations;
+            }
+
+            async getPhonics() {
+                const vocabs = await this.callLnut("phonicsController/getPhonicsData", {
+                    phonicCatalogUid: this.catalogUid,
+                    toLanguage: this.toLanguage,
+                    fromLanguage: "en-US",
+                    token: this.token,
+                });
+                return vocabs.phonics;
+            }
+
+            async getSentences() {
+                const vocabs = await this.callLnut("sentenceTranslationController/getSentenceTranslations", {
+                    catalogUid: this.catalogUid,
+                    toLanguage: this.toLanguage,
+                    fromLanguage: "en-US",
+                    token: this.token,
+                });
+                return vocabs.sentenceTranslations;
+            }
+
+            async getExam() {
+                const vocabs = await this.callLnut("examTranslationController/getExamTranslationsCorrect", {
+                    gameUid: this.gameUid,
+                    examUid: this.catalogUid,
+                    toLanguage: this.toLanguage,
+                    fromLanguage: "en-US",
+                    token: this.token,
+                });
+                return vocabs.examTranslations;
+            }
+
+            async getVocabs() {
+                const vocabs = await this.callLnut("vocabTranslationController/getVocabTranslations", {
+                    "catalogUid[]": this.catalogUid,
+                    toLanguage: this.toLanguage,
+                    fromLanguage: "en-US",
+                    token: this.token,
+                });
+                return vocabs.vocabTranslations;
+            }
+
+            async callLnut(url, data) {
+                if (isDemoMode) {
+                    return await MockLnutServer.handle(url, data);
+                }
+                const urlData = new URLSearchParams(data).toString();
+                const response = await fetch(`https://api.languagenut.com/${url}?${urlData}`);
+                return await response.json();
+            }
+
+            getTaskType() {
+                if (this.task.gameLink.includes("sentenceCatalog")) return "sentence";
+                if (this.task.gameLink.includes("verbUid")) return "verbs";
+                if (this.task.gameLink.includes("phonicCatalogUid")) return "phonics";
+                if (this.task.gameLink.includes("examUid")) return "exam";
+                return "vocabs";
+            }
+        }
+
+        // Main application class
+        class ClientApplication {
+            constructor() {
+                this.usernameBox = document.getElementById("username_input");
+                this.passwordBox = document.getElementById("password_input");
+                this.moduleTranslations = [];
+                this.displayTranslations = [];
+                this.homeworks = [];
+                this.token = null;
+            }
+
+            hideAll() {
+                const overlays = document.getElementsByClassName("overlay");
+                for (let overlay of overlays) {
+                    overlay.classList.remove("active");
+                }
+            }
+
+            showBox(id) {
+                document.getElementById(id).classList.add("active");
+            }
+
+            hideBox(id) {
+                document.getElementById(id).classList.remove("active");
+            }
+
+            async callLnut(url, data) {
+                if (isDemoMode) {
+                    return await MockLnutServer.handle(url, data);
+                }
+                const urlData = new URLSearchParams(data).toString();
+                const response = await fetch(`https://api.languagenut.com/${url}?${urlData}`);
+                return await response.json();
+            }
+
+            main() {
+                this.showBox("login");
+                document.getElementById("login_btn").onclick = async () => {
+                    try {
+                        const response = await this.callLnut("loginController/attemptLogin", {
+                            username: this.usernameBox.value,
+                            pass: this.passwordBox.value,
+                        });
+                        this.token = response.newToken;
+                        if (this.token) {
+                            showToast("Authenticated successfully!", false);
+                            this.onLogIn();
+                        } else {
+                            showToast("Login failed. Please check your credentials.", true);
+                        }
+                    } catch (err) {
+                        showToast("Network error connecting to Languagenut API.", true);
+                        console.error(err);
+                    }
+                };
+            }
+
+            onLogIn() {
+                this.hideBox("login");
+                this.showBox("hw_panel");
+                this.showBox("log_panel");
+
+                document.getElementById("do_hw").onclick = () => {
+                    this.doHomeworks();
+                };
+
+                this.getModuleTranslations();
+                this.getDisplayTranslations();
+                this.displayHomeworks();
+            }
+
+            getTaskName(task) {
+                let name = task.verb_name;
+
+                if (task.module_translations) {
+                    name = this.moduleTranslations[task.module_translations[0]];
+                }
+
+                if (task.module_translation) {
+                    name = this.moduleTranslations[task.module_translation];
+                }
+
+                return name || "Unknown Task";
+            }
+
+            async displayHomeworks() {
+                const homeworks = await this.getHomeworks();
+                const panel = document.getElementById("hw_container");
+                panel.innerHTML = "";
+                this.homeworks = homeworks.homework || [];
+                this.homeworks.reverse();
+
+                const selectAllButton = document.getElementById("selectall");
+                selectAllButton.checked = false;
+                selectAllButton.onclick = function() {
+                    const checkboxes = document.getElementsByName("boxcheck");
+                    for (const checkbox of checkboxes) {
+                        checkbox.checked = this.checked;
+                    }
+                };
+
+                let hwIdx = 0;
+                for (const homework of this.homeworks) {
+                    const { hwName, hwDisplay } = this.createHomeworkElements(homework, hwIdx);
+                    panel.appendChild(hwName);
+                    panel.appendChild(hwDisplay);
+                    hwIdx++;
+                }
+            }
+
+            createHomeworkElements(homework, hwIdx) {
+                const hwCheckbox = document.createElement("input");
+                hwCheckbox.type = "checkbox";
+                hwCheckbox.name = "boxcheck";
+                hwCheckbox.onclick = function() {
+                    setCheckboxes(this.parentNode.nextElementSibling.id, this.checked);
+                };
+
+                const hwName = document.createElement("div");
+                hwName.innerHTML = `<strong>${homework.name}</strong>`;
+                hwName.prepend(hwCheckbox);
+                hwName.style.marginBottom = "0.5rem";
+
+                const hwDisplay = document.createElement("div");
+                hwDisplay.id = `hw${homework.id}`;
+                hwDisplay.style.marginLeft = "1.5rem";
+                hwDisplay.style.marginBottom = "1rem";
+
+                let idx = 0;
+                for (const task of homework.tasks) {
+                    const { taskSpan, taskCheckbox, taskDisplay } = this.createTaskElements(task, hwIdx, idx);
+                    taskSpan.appendChild(taskCheckbox);
+                    taskSpan.appendChild(taskDisplay);
+                    hwDisplay.appendChild(taskSpan);
+                    idx++;
+                }
+
+                return { hwName, hwDisplay };
+            }
+
+            createTaskElements(task, hwIdx, idx) {
+                const taskCheckbox = document.createElement("input");
+                taskCheckbox.type = "checkbox";
+                taskCheckbox.name = "boxcheck";
+                taskCheckbox.id = `${hwIdx}-${idx}`;
+
+                const taskDisplay = document.createElement("label");
+                taskDisplay.htmlFor = taskCheckbox.id;
+                const percentage = task.gameResults ? task.gameResults.percentage : "-";
+                taskDisplay.innerHTML = `${this.displayTranslations[task.translation]} - ${this.getTaskName(task)} (${percentage}%)`;
+
+                const taskSpan = document.createElement("span");
+                taskSpan.classList.add("task");
+
+                return { taskSpan, taskCheckbox, taskDisplay };
+            }
+
+            async doHomeworks() {
+                const checkboxes = document.querySelectorAll(".task > input[type=checkbox]:checked");
+                if (checkboxes.length === 0) {
+                    showToast("Please select at least one homework task first.", true);
+                    return;
+                }
+
+                const logs = document.getElementById("log_container");
+                logs.innerHTML = `<strong>Processing ${checkboxes.length} tasks...</strong><br>`;
+
+                const progressBar = document.getElementById("hw_bar");
+                let progress = 0;
+                progressBar.style.width = "0%";
+
+                const funcs = [];
+                let taskId = 1;
+
+                for (const checkbox of checkboxes) {
+                    const parts = checkbox.id.split("-");
+                    const task = this.homeworks[parts[0]].tasks[parts[1]];
+                    const taskCompleter = new TaskCompleter(
+                        this.token,
+                        task,
+                        this.homeworks[parts[0]].languageCode
+                    );
+
+                    funcs.push(() => (async (id) => {
+                        try {
+                            const answers = await taskCompleter.getData();
+                            if (!answers || answers.length === 0) {
+                                logs.innerHTML += `<div>Task ${id}: No answers found, skipping...</div>`;
+                                return;
+                            }
+
+                            logs.innerHTML += `<div><strong>Task ${id}:</strong> Fetched ${answers.length} vocabs</div>`;
+                            logs.innerHTML += `<div class="json-small">${JSON.stringify(answers.slice(0, 3))}${answers.length > 3 ? '...' : ''}</div>`;
+
+                            progress += 1;
+                            progressBar.style.width = `${(progress / checkboxes.length) * 50}%`;
+
+                            const result = await taskCompleter.sendAnswers(answers);
+                            logs.innerHTML += `<div><strong>Task ${id}:</strong> Completed, scored ${result.score}</div>`;
+                            logs.innerHTML += `<div class="json-small">Status: ${result.status || 'Success'}</div>`;
+
+                            // If in demo mode, update local percentage to 100%
+                            if (isDemoMode) {
+                                task.gameResults = { percentage: 100 };
+                            }
+
+                            progress += 1;
+                            progressBar.style.width = `${(progress / checkboxes.length) * 50}%`;
+                        } catch (error) {
+                            logs.innerHTML += `<div><strong>Task ${id}:</strong> Error - ${error.message}</div>`;
+                            console.error(`Task ${id} error:`, error);
+                        }
+
+                        logs.scrollTop = logs.scrollHeight;
+                    })(taskId++));
+                }
+
+                try {
+                    await asyncPool(funcs, 5);
+                    logs.innerHTML += `<div><strong>All tasks completed!</strong></div>`;
+                    progressBar.style.width = "100%";
+                    showToast(`Completed ${checkboxes.length} homework task(s)!`, false);
+                    setTimeout(() => this.displayHomeworks(), 1000);
+                } catch (error) {
+                    logs.innerHTML += `<div><strong>Error:</strong> ${error.message}</div>`;
+                    console.error("Homework completion error:", error);
+                }
+            }
+
+            async getDisplayTranslations() {
+                try {
+                    const response = await this.callLnut("publicTranslationController/getTranslations", {});
+                    this.displayTranslations = response.translations;
+                } catch (error) {
+                    console.error("Error getting display translations:", error);
+                    this.displayTranslations = {};
+                }
+            }
+
+            async getModuleTranslations() {
+                try {
+                    const response = await this.callLnut("translationController/getUserModuleTranslations", {
+                        token: this.token,
+                    });
+                    this.moduleTranslations = response.translations;
+                } catch (error) {
+                    console.error("Error getting module translations:", error);
+                    this.moduleTranslations = {};
+                }
+            }
+
+            async getHomeworks() {
+                return await this.callLnut("assignmentController/getViewableAll", {
+                    token: this.token,
+                });
+            }
+        }
+
+        // =========================================================================
+        // PREVIEW / DEMO MODE SIMULATION ENGINE
+        // Allows immediate testing of the Homework & Logs UI without live credentials
+        // =========================================================================
+        const MockLnutServer = {
+            homeworksData: [
+                {
+                    id: 101,
+                    name: "Spanish GCSE - Unit 4: Customs & Festivals",
+                    languageCode: "es-ES",
+                    tasks: [
+                        {
+                            base: [101, 5001],
+                            catalog_uid: 5001,
+                            rel_module_uid: 901,
+                            game_uid: 1,
+                            type: "listening",
+                            gameLink: "vocabCatalog?catalogUid=5001",
+                            translation: "listening_game",
+                            module_translation: "mod_fiestas",
+                            gameResults: { percentage: 40 }
+                        },
+                        {
+                            base: [101, 5002],
+                            catalog_uid: 5002,
+                            rel_module_uid: 902,
+                            game_uid: 2,
+                            type: "reading",
+                            gameLink: "sentenceCatalog?catalogUid=5002",
+                            translation: "sentence_building",
+                            module_translation: "mod_traditions",
+                            gameResults: null
+                        },
+                        {
+                            base: [101, 5003],
+                            catalog_uid: 5003,
+                            rel_module_uid: 903,
+                            game_uid: 3,
+                            type: "writing",
+                            gameLink: "verbUid?verbUid=5003",
+                            translation: "verb_conjugation",
+                            verb_name: "Preterite Tense (Irregulars)",
+                            gameResults: { percentage: 80 }
+                        }
+                    ]
+                },
+                {
+                    id: 102,
+                    name: "French Year 10 - Technology in Everyday Life",
+                    languageCode: "fr-FR",
+                    tasks: [
+                        {
+                            base: [102, 6001],
+                            catalog_uid: 6001,
+                            rel_module_uid: 911,
+                            game_uid: 4,
+                            type: "vocabulary",
+                            gameLink: "vocabCatalog?catalogUid=6001",
+                            translation: "vocab_practice",
+                            module_translation: "mod_social_media",
+                            gameResults: null
+                        },
+                        {
+                            base: [102, 6002],
+                            catalog_uid: 6002,
+                            rel_module_uid: 912,
+                            game_uid: 5,
+                            type: "exam",
+                            gameLink: "examUid?examUid=6002",
+                            translation: "exam_reading",
+                            module_translation: "mod_cyber_safety",
+                            gameResults: { percentage: 100 }
+                        }
+                    ]
+                }
+            ],
+            async handle(url, data) {
+                await new Promise(r => setTimeout(r, 220));
+                if (url.includes("attemptLogin")) {
+                    return { newToken: "demo_jwt_token_994810" };
+                }
+                if (url.includes("getTranslations")) {
+                    return {
+                        translations: {
+                            listening_game: "Listening Comprehension",
+                            sentence_building: "Sentence Trainer",
+                            verb_conjugation: "Verb Conjugation",
+                            vocab_practice: "Vocabulary Builder",
+                            exam_reading: "Exam Skills Reading"
+                        }
+                    };
+                }
+                if (url.includes("getUserModuleTranslations")) {
+                    return {
+                        translations: {
+                            mod_fiestas: "Las Fiestas Hispanas",
+                            mod_traditions: "Regional Traditions & Food",
+                            mod_social_media: "Les Réseaux Sociaux",
+                            mod_cyber_safety: "Les Avantages de la Technologie"
+                        }
+                    };
+                }
+                if (url.includes("getViewableAll")) {
+                    return {
+                        homework: JSON.parse(JSON.stringify(this.homeworksData))
+                    };
+                }
+                if (url.includes("getVocabTranslations")) {
+                    return {
+                        vocabTranslations: [
+                            { uid: "v_101", word: "la fiesta", translation: "festival" },
+                            { uid: "v_102", word: "el desfile", translation: "parade" },
+                            { uid: "v_103", word: "celebrar", translation: "to celebrate" },
+                            { uid: "v_104", word: "los fuegos artificiales", translation: "fireworks" },
+                            { uid: "v_105", word: "la costumbre", translation: "custom" }
+                        ]
+                    };
+                }
+                if (url.includes("getSentenceTranslations")) {
+                    return {
+                        sentenceTranslations: [
+                            { uid: "s_201", sentence: "Todos los años celebramos la fiesta local." },
+                            { uid: "s_202", sentence: "Me encanta ver el desfile con mi familia." },
+                            { uid: "s_203", sentence: "Cenamos platos típicos de la región." },
+                            { uid: "s_204", sentence: "La música tradicional suena en la plaza." }
+                        ]
+                    };
+                }
+                if (url.includes("getVerbTranslations")) {
+                    return {
+                        verbTranslations: [
+                            { uid: "vb_301", infinitive: "ir", form: "fui, fuiste, fue" },
+                            { uid: "vb_302", infinitive: "hacer", form: "hice, hiciste, hizo" },
+                            { uid: "vb_303", infinitive: "tener", form: "tuve, tuviste, tuvo" }
+                        ]
+                    };
+                }
+                if (url.includes("getExamTranslationsCorrect")) {
+                    return {
+                        examTranslations: [
+                            { uid: "ex_401", q: "Question 1", ans: "A" },
+                            { uid: "ex_402", q: "Question 2", ans: "C" },
+                            { uid: "ex_403", q: "Question 3", ans: "B" }
+                        ]
+                    };
+                }
+                if (url.includes("addGameScore")) {
+                    return {
+                        score: Number(data.score) || 1000,
+                        status: "200 OK (Simulated Score Recorded)"
+                    };
+                }
+                return {};
+            }
+        };
+
+        function toggleDemoMode() {
+            isDemoMode = !isDemoMode;
+            const btnLabel = document.getElementById("demo_mode_label");
+            const dot = document.getElementById("demo_status_dot");
+            const demoBtn = document.getElementById("demo_mode_btn");
+
+            if (isDemoMode) {
+                btnLabel.textContent = "Exit Preview Mode";
+                dot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+                demoBtn.className = "px-3.5 py-2 rounded-xl text-xs font-medium bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-200 border border-emerald-500/30 transition-all flex items-center gap-2 cursor-pointer shadow-sm";
+                app.token = "demo_jwt_token_994810";
+                app.onLogIn();
+                showToast("Preview Mode active: Loaded sample assignments.", false);
+            } else {
+                btnLabel.textContent = "Preview Dashboard";
+                dot.className = "w-2 h-2 rounded-full bg-slate-500";
+                demoBtn.className = "px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 transition-all flex items-center gap-2 cursor-pointer shadow-sm";
+                app.token = null;
+                app.hideAll();
+                app.showBox("login");
+                showToast("Returned to live Languagenut login.", false);
+            }
+        }
+
+        document.getElementById("demo_mode_btn").addEventListener("click", toggleDemoMode);
+        document.getElementById("quick_demo_link").addEventListener("click", toggleDemoMode);
+
+        // Initialize application
+        app = new ClientApplication();
+        app.main();
+    </script>
 </body>
-
 </html>
-
